@@ -13,7 +13,7 @@ import {
     IconPlus,
 } from '@tabler/icons-react';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import cn from '@/lib/cn';
 interface Props {
@@ -87,11 +87,106 @@ export default function Chat({
     const [emotes, setEmotes] = useState<{ name: string; id: string }[] | []>(
         []
     );
+    const [renderedMessages, setRenderedMessages] = useState<JSX.Element[] | []>([]);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const renderEmotes = (messages: Message[]) => {
+
+            let array: JSX.Element[] = [];
+
+            messages.forEach((message) => {
+                let { message: content } = message;
+                const emotesInMessage = content
+                    .split(' ')
+                    .filter((word) => emotes.find((emote) => emote.name === word));
+                const renderedMessage = (
+                    <motion.article
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className='rounded-xl p-2.5 text-sm'
+                    >
+                        <p className='inline-flex flex-wrap items-baseline gap-2  text-pretty text-white'>
+                            <span
+                                className={`flex items-end gap-2 font-bold ${message.color}`}
+                            >
+                                {message.isSub && (
+                                    <span className='flex size-6 items-center justify-center rounded bg-indigo-500 text-white'>
+                                        <IconCrown className='size-4 fill-current' />
+                                    </span>
+                                )}
+                                {message.isMod && (
+                                    <span className='flex size-6 items-center justify-center rounded bg-green-500 text-white'>
+                                        <IconHammer className='size-4 fill-current' />
+                                    </span>
+                                )}
+                                {message.user}
+                            </span>
+                            {
+                                emotesInMessage.length > 0
+                                    ? emotesInMessage.reduce<Array<string | React.ReactElement>>((acc, emoteName, emoteIndex, arr) => {
+                                        const emote = emotes.find((e) => e.name === emoteName);
+                                        const emoteIndexInContent = content.indexOf(emoteName);
+
+                                        if (emoteIndexInContent > 0) {
+                                            acc.push(content.substring(0, emoteIndexInContent));
+                                        }
+
+                                        acc.push(
+                                            <section className='group relative'>
+                                                <Image
+                                                    key={emoteIndex}
+                                                    width={30}
+                                                    height={30}
+                                                    src={`https://cdn.7tv.app/emote/${emote?.id}/1x.avif`}
+                                                    alt={emoteName}
+                                                />
+                                                <span className='relativ absolute right-full top-full hidden flex-col items-center gap-2.5 overflow-hidden rounded-md bg-zinc-950/40 p-2.5 text-xs font-medium backdrop-blur-md transition-all group-hover:flex'>
+                                                    <figure className='relative size-10'>
+                                                        <Image
+                                                            key={emoteIndex}
+                                                            fill
+                                                            className='size-10'
+                                                            src={`https://cdn.7tv.app/emote/${emote?.id}/2x.avif`}
+                                                            alt={emoteName}
+                                                        />
+                                                    </figure>
+                                                    {emoteName}
+                                                </span>
+                                            </section>
+                                        );
+
+                                        // Actualiza el contenido para excluir el emote actual
+                                        content = content.substring(emoteIndexInContent + emoteName.length);
+
+                                        // Si es el último emote, agrega el texto restante al array
+                                        if (emoteIndex === arr.length - 1 && content.length > 0) {
+                                            acc.push(content);
+                                        }
+
+                                        return acc;
+                                    }, [])
+                                    : content
+                            }
+
+                        </p>
+                    </motion.article>
+                );
+
+                array.push(renderedMessage);
+            });
+
+            return array;
+
+        };
+        setRenderedMessages(renderEmotes(messages));
     }, [messages]);
+
+    useLayoutEffect(() => {
+        const messagesEnd = messagesEndRef.current;
+        messagesEnd?.scrollIntoView({ behavior: 'smooth' });
+    }, [renderedMessages]);
 
     useEffect(() => {
         const storagedMessages = localStorage.getItem('messages');
@@ -106,89 +201,6 @@ export default function Chat({
         fetchEmotes();
     }, []);
 
-    const renderEmotes = (message: Message, index: number) => {
-
-
-        let { message: content } = message;
-        const emotesInMessage = content
-            .split(' ')
-            .filter((word) => emotes.find((emote) => emote.name === word));
-
-        return (
-            <motion.article
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                key={index}
-                className='rounded-xl p-2.5 text-sm odd:bg-zinc-800'
-            >
-                <p className='inline-flex flex-wrap items-baseline gap-2  text-pretty text-white'>
-                    <span
-                        className={`flex items-end gap-2 font-bold ${message.color}`}
-                    >
-                        {message.isSub && (
-                            <span className='flex size-6 items-center justify-center rounded bg-indigo-500 text-white'>
-                                <IconCrown className='size-4 fill-current' />
-                            </span>
-                        )}
-                        {message.isMod && (
-                            <span className='flex size-6 items-center justify-center rounded bg-green-500 text-white'>
-                                <IconHammer className='size-4 fill-current' />
-                            </span>
-                        )}
-                        {message.user}
-                    </span>
-                    {
-                        emotesInMessage.length > 0
-                            ? emotesInMessage.reduce<Array<string | React.ReactElement>>((acc, emoteName, emoteIndex, arr) => {
-                                const emote = emotes.find((e) => e.name === emoteName);
-                                const emoteIndexInContent = content.indexOf(emoteName);
-
-                                if (emoteIndexInContent > 0) {
-                                    acc.push(content.substring(0, emoteIndexInContent));
-                                }
-
-                                acc.push(
-                                    <section className='group relative'>
-                                        <Image
-                                            key={emoteIndex}
-                                            width={30}
-                                            height={30}
-                                            src={`https://cdn.7tv.app/emote/${emote?.id}/1x.avif`}
-                                            alt={emoteName}
-                                        />
-                                        <span className='relativ absolute right-full top-full hidden flex-col items-center gap-2.5 overflow-hidden rounded-md bg-zinc-950/40 p-2.5 text-xs font-medium backdrop-blur-md transition-all group-hover:flex'>
-                                            <figure className='relative size-10'>
-                                                <Image
-                                                    key={emoteIndex}
-                                                    fill
-                                                    className='size-10'
-                                                    src={`https://cdn.7tv.app/emote/${emote?.id}/2x.avif`}
-                                                    alt={emoteName}
-                                                />
-                                            </figure>
-                                            {emoteName}
-                                        </span>
-                                    </section>
-                                );
-
-                                // Actualiza el contenido para excluir el emote actual
-                                content = content.substring(emoteIndexInContent + emoteName.length);
-
-                                // Si es el último emote, agrega el texto restante al array
-                                if (emoteIndex === arr.length - 1 && content.length > 0) {
-                                    acc.push(content);
-                                }
-
-                                return acc;
-                            }, [])
-                            : content
-                    }
-
-                </p>
-            </motion.article>
-        );
-    };
 
     return (
         <AnimatePresence>
@@ -203,13 +215,15 @@ export default function Chat({
                         setChatIsHidden={setChatIsHidden}
                         chatIsHidden={chatIsHidden}
                     />
-                    <section className='scrollbar-hide flex flex-grow flex-col gap-2.5 overflow-auto p-2.5'>
+                    <section className='flex flex-grow flex-col gap-2.5 overflow-auto p-2.5'>
                         <AnimatePresence>
-                            {messages.map((message, index) => (
-                                renderEmotes(message, index)
+                            {renderedMessages.map((message, index) => (
+                                <section key={index} className='odd:bg-zinc-800 rounded-xl'>
+                                    {message}
+                                </section>
                             ))}
                         </AnimatePresence>
-                        <div ref={messagesEndRef} />
+                        <div ref={messagesEndRef}></div>
                     </section>
                     <Footer
                         fullScreenMode={fullScreenMode}

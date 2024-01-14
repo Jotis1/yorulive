@@ -9,6 +9,7 @@ import {
     IconTerminal,
     IconGift,
     IconSend,
+    IconMoodSmile,
 } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import cn from '@/lib/cn';
@@ -152,6 +153,9 @@ export default function Footer({ setMessages, messages }: Props) {
                 onSubmit={handleMessages}
                 className='z-10 flex w-full items-center gap-2'
             >
+                <button className='hidden size-10 items-center justify-center rounded-xl bg-zinc-900 text-xs font-medium text-white'>
+                    <IconMoodSmile className='size-5' />
+                </button>
                 <input
                     id='sendMessageInput'
                     type='text'
