@@ -10,8 +10,7 @@
  */
 import { SideBar, PlayerContainer, Chat, NavBar } from '@/components';
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import cn from '@/lib/cn';
+import { motion } from 'framer-motion';
 /**
  * @description Página principal
  * @returns {JSX.Element}

@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m, motion } from 'framer-motion';
 import {
     IconArrowBarRight,
     IconSettings,
@@ -47,7 +47,43 @@ export default function Chat({
     setChatIsHidden,
     fullScreenMode,
 }: Props) {
-    const [messages, setMessages] = useState<Message[] | []>([]);
+    const [messages, setMessages] = useState<Message[] | []>([
+        {
+            user: 'Juanma',
+            message: 'Hola, este es el chat',
+            color: 'text-red-500',
+            isMod: true,
+            isSub: true,
+        },
+        {
+            user: 'Juanma',
+            message: 'Prueba a escribir "Life"',
+            color: 'text-red-500',
+            isMod: true,
+            isSub: true,
+        },
+        {
+            user: 'Juanma',
+            message: '(sin las comillas)',
+            color: 'text-red-500',
+            isMod: true,
+            isSub: true,
+        },
+        {
+            user: 'Juanma',
+            message: 'Por cierto, abajo del reproductor tienes dos botones para configurar el mismo, el de "Añadir directos o vídeos" y los tres puntitos',
+            color: 'text-red-500',
+            isMod: true,
+            isSub: true,
+        },
+        {
+            user: 'Juanma',
+            message: 'También puedes customizar el chat, cambiar el color, el tamaño, etc. Con los controles de abajo',
+            color: 'text-red-500',
+            isMod: true,
+            isSub: true,
+        },
+    ]);
     const [emotes, setEmotes] = useState<{ name: string; id: string }[] | []>(
         []
     );
@@ -71,6 +107,8 @@ export default function Chat({
     }, []);
 
     const renderEmotes = (message: Message, index: number) => {
+
+
         let { message: content } = message;
         const emotesInMessage = content
             .split(' ')
@@ -100,48 +138,53 @@ export default function Chat({
                         )}
                         {message.user}
                     </span>
-                    {emotesInMessage.length > 0
-                        ? emotesInMessage.reduce<
-                              Array<string | React.ReactElement>
-                          >((acc, emoteName, emoteIndex) => {
-                              const emote = emotes.find(
-                                  (emote) => emote.name === emoteName
-                              );
-                              const emoteIndexInContent =
-                                  content.indexOf(emoteName);
+                    {
+                        emotesInMessage.length > 0
+                            ? emotesInMessage.reduce<Array<string | React.ReactElement>>((acc, emoteName, emoteIndex, arr) => {
+                                const emote = emotes.find((e) => e.name === emoteName);
+                                const emoteIndexInContent = content.indexOf(emoteName);
 
-                              acc.push(
-                                  content.substring(0, emoteIndexInContent)
-                              );
-                              acc.push(
-                                  <section className='group relative'>
-                                      <Image
-                                          key={emoteIndex}
-                                          width={30}
-                                          height={30}
-                                          src={`https://cdn.7tv.app/emote/${emote?.id}/1x.avif`}
-                                          alt={emoteName}
-                                      />
-                                      <span className='relativ absolute right-full top-full hidden flex-col items-center gap-2.5 overflow-hidden rounded-md bg-zinc-950/40 p-2.5 text-xs font-medium backdrop-blur-md transition-all group-hover:flex'>
-                                          <figure className='relative size-10'>
-                                              <Image
-                                                  key={emoteIndex}
-                                                  fill
-                                                  className='size-10'
-                                                  src={`https://cdn.7tv.app/emote/${emote?.id}/2x.avif`}
-                                                  alt={emoteName}
-                                              />
-                                          </figure>
-                                          {emoteName}
-                                      </span>
-                                  </section>
-                              );
-                              content = content.substring(
-                                  emoteIndexInContent + emoteName.length
-                              );
-                              return acc;
-                          }, [])
-                        : content}
+                                if (emoteIndexInContent > 0) {
+                                    acc.push(content.substring(0, emoteIndexInContent));
+                                }
+
+                                acc.push(
+                                    <section className='group relative'>
+                                        <Image
+                                            key={emoteIndex}
+                                            width={30}
+                                            height={30}
+                                            src={`https://cdn.7tv.app/emote/${emote?.id}/1x.avif`}
+                                            alt={emoteName}
+                                        />
+                                        <span className='relativ absolute right-full top-full hidden flex-col items-center gap-2.5 overflow-hidden rounded-md bg-zinc-950/40 p-2.5 text-xs font-medium backdrop-blur-md transition-all group-hover:flex'>
+                                            <figure className='relative size-10'>
+                                                <Image
+                                                    key={emoteIndex}
+                                                    fill
+                                                    className='size-10'
+                                                    src={`https://cdn.7tv.app/emote/${emote?.id}/2x.avif`}
+                                                    alt={emoteName}
+                                                />
+                                            </figure>
+                                            {emoteName}
+                                        </span>
+                                    </section>
+                                );
+
+                                // Actualiza el contenido para excluir el emote actual
+                                content = content.substring(emoteIndexInContent + emoteName.length);
+
+                                // Si es el último emote, agrega el texto restante al array
+                                if (emoteIndex === arr.length - 1 && content.length > 0) {
+                                    acc.push(content);
+                                }
+
+                                return acc;
+                            }, [])
+                            : content
+                    }
+
                 </p>
             </motion.article>
         );
@@ -162,9 +205,9 @@ export default function Chat({
                     />
                     <section className='scrollbar-hide flex flex-grow flex-col gap-2.5 overflow-auto p-2.5'>
                         <AnimatePresence>
-                            {messages.map((message, index) =>
+                            {messages.map((message, index) => (
                                 renderEmotes(message, index)
-                            )}
+                            ))}
                         </AnimatePresence>
                         <div ref={messagesEndRef} />
                     </section>
