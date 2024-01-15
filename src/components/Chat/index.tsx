@@ -1,21 +1,11 @@
-import { AnimatePresence, m, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-    IconArrowBarRight,
-    IconSettings,
-    IconClipboardCopy,
-    IconTerminal,
-    IconGift,
-    IconDiamond,
-    IconSend,
     IconCrown,
     IconHammer,
-    IconX,
-    IconPlus,
 } from '@tabler/icons-react';
 
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Image from 'next/image';
-import cn from '@/lib/cn';
 interface Props {
     chatIsHidden: boolean;
     setChatIsHidden: React.Dispatch<React.SetStateAction<boolean>>;
@@ -24,70 +14,20 @@ interface Props {
 
 import Header from './Header';
 import Footer from './Footer';
+import Spammer from './Spammer';
 
-type color =
-    | 'text-red-500'
-    | 'text-yellow-500'
-    | 'text-green-500'
-    | 'text-blue-500'
-    | 'text-indigo-500'
-    | 'text-purple-500'
-    | 'text-pink-500';
-
-interface Message {
-    user: string;
-    message: string;
-    color: color;
-    isMod: boolean;
-    isSub: boolean;
-}
+import { messagesPlaceholder } from '@/lib/utils/placeholder';
+import { Message } from '@/lib/types';
 
 export default function Chat({
     chatIsHidden,
     setChatIsHidden,
     fullScreenMode,
 }: Props) {
-    const [messages, setMessages] = useState<Message[] | []>([
-        {
-            user: 'Juanma',
-            message: 'Hola, este es el chat',
-            color: 'text-red-500',
-            isMod: true,
-            isSub: true,
-        },
-        {
-            user: 'Juanma',
-            message: 'Prueba a escribir "Life"',
-            color: 'text-red-500',
-            isMod: true,
-            isSub: true,
-        },
-        {
-            user: 'Juanma',
-            message: '(sin las comillas)',
-            color: 'text-red-500',
-            isMod: true,
-            isSub: true,
-        },
-        {
-            user: 'Juanma',
-            message: 'Por cierto, abajo del reproductor tienes dos botones para configurar el mismo, el de "Añadir directos o vídeos" y los tres puntitos',
-            color: 'text-red-500',
-            isMod: true,
-            isSub: true,
-        },
-        {
-            user: 'Juanma',
-            message: 'También puedes customizar el chat, cambiar el color, el tamaño, etc. Con los controles de abajo',
-            color: 'text-red-500',
-            isMod: true,
-            isSub: true,
-        },
-    ]);
-    const [emotes, setEmotes] = useState<{ name: string; id: string }[] | []>(
-        []
-    );
+    const [messages, setMessages] = useState<Message[] | []>(messagesPlaceholder);
+    const [emotes, setEmotes] = useState<{ name: string; id: string }[] | []>([]);
     const [renderedMessages, setRenderedMessages] = useState<JSX.Element[] | []>([]);
+    const [spammedMessage, setSpammedMessage] = useState<{ timesUsed: number, text: string, emote: string }>({ timesUsed: 0, text: "", emote: "" });
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -201,7 +141,6 @@ export default function Chat({
         fetchEmotes();
     }, []);
 
-
     return (
         <AnimatePresence>
             {!(fullScreenMode || chatIsHidden) && (
@@ -209,13 +148,14 @@ export default function Chat({
                     initial={{ opacity: 0, width: '0%' }}
                     animate={{ opacity: 1, width: '100%' }}
                     exit={{ opacity: 0, width: '0%' }}
-                    className='sticky top-0 flex h-full flex-col overflow-auto bg-zinc-900 opacity-100 md:max-w-72 xl:max-w-96'
+                    className='sticky scrollbar-hide top-0 flex h-full flex-col overflow-auto bg-zinc-900 opacity-100 md:max-w-72 xl:max-w-96'
                 >
                     <Header
                         setChatIsHidden={setChatIsHidden}
                         chatIsHidden={chatIsHidden}
                     />
-                    <section className='flex flex-grow flex-col gap-2.5 overflow-auto p-2.5'>
+                    <Spammer setSpammedMessage={setSpammedMessage} spammedMessage={spammedMessage} emote='Life' type="cheer" />
+                    <section className='flex flex-grow flex-col scrollbar-hide gap-2.5 overflow-auto p-2.5'>
                         <AnimatePresence>
                             {renderedMessages.map((message, index) => (
                                 <section key={index} className='odd:bg-zinc-800 rounded-xl'>
@@ -226,7 +166,8 @@ export default function Chat({
                         <div ref={messagesEndRef}></div>
                     </section>
                     <Footer
-                        fullScreenMode={fullScreenMode}
+                        spammedMessage={spammedMessage}
+                        setSpammedMessage={setSpammedMessage}
                         setMessages={setMessages}
                         messages={messages}
                     />

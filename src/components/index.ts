@@ -9,5 +9,7 @@ import Player from './Player/Player';
 import Chat from './Chat';
 import NavBar from './NavBar';
 import PlayerContainer from './Player';
+import Button from './Button';
+import Avatar from './Avatar';
 
-export { SideBar, PlayerFooter, Player, Chat, NavBar, PlayerContainer };
+export { SideBar, PlayerFooter, Player, Chat, NavBar, PlayerContainer, Button, Avatar };

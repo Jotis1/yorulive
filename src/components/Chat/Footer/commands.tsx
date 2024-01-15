@@ -22,6 +22,11 @@ export default function Commands({ showCommands }: Props) {
             command: '/say [username] [message]',
             description: 'Envía un mensaje como si fueras el usuario',
         },
+        {
+            title: '/spam',
+            command: '/spam [emote] [message]',
+            description: 'Spamea un mensaje',
+        }
     ];
 
     return (

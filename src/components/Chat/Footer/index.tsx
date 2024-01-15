@@ -38,7 +38,8 @@ interface User {
     isSub: boolean;
 }
 interface Props {
-    fullScreenMode: boolean;
+    spammedMessage: { timesUsed: number, text: string, emote: string }
+    setSpammedMessage: React.Dispatch<React.SetStateAction<{ timesUsed: number, text: string, emote: string }>>;
     messages: Message[];
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
@@ -50,7 +51,7 @@ interface Message {
     isSub: boolean;
 }
 
-export default function Footer({ setMessages, messages }: Props) {
+export default function Footer({ spammedMessage, setSpammedMessage, setMessages, messages }: Props) {
     const [showChangeUserSettings, setShowChangeUserSettings] = useState(false);
     const [showCopypaste, setShowCopypaste] = useState(false);
     const [showCommands, setShowCommands] = useState(false);
@@ -61,6 +62,7 @@ export default function Footer({ setMessages, messages }: Props) {
         isMod: false,
         isSub: false,
     });
+
     const handleMessages = (e: any) => {
         e.preventDefault();
         const input = document.getElementById(
@@ -72,7 +74,7 @@ export default function Footer({ setMessages, messages }: Props) {
                 if (message.startsWith('/clear')) {
                     setMessages([]);
                     localStorage.removeItem('messages');
-                } else if (message.startsWith('/say')) {
+                } else if (message.startsWith('/say ')) {
                     let messageSplited: string[] = message.split(' ');
                     let username = messageSplited[1];
                     let content = messageSplited.slice(2).join(' ');
@@ -101,6 +103,25 @@ export default function Footer({ setMessages, messages }: Props) {
                                 },
                             ])
                         );
+                } else if (message.startsWith("/spam ")) {
+                    let messageSplited: string[] = message.split('/spam ');
+                    let emote = messageSplited[1].split(' ')[0];
+                    let content = messageSplited[1].slice(emote.length + 1);
+                    if (content === spammedMessage.text) {
+                        setSpammedMessage({ ...spammedMessage, timesUsed: spammedMessage.timesUsed + 1 });
+                    } else {
+                        setSpammedMessage({ timesUsed: 0, text: content, emote });
+                    }
+                    setMessages([
+                        ...messages,
+                        {
+                            user: user.name,
+                            message: messageSplited[1],
+                            color: user.color,
+                            isMod: user.isMod,
+                            isSub: user.isSub,
+                        },
+                    ]);
                 }
             } else {
                 setMessages([

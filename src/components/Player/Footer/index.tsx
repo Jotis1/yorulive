@@ -8,6 +8,7 @@ import {
 } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
+import cn from '@/lib/cn';
 
 interface Props {
     currentTime: number;
@@ -147,7 +148,7 @@ export default function PlayerFooter({
                                         <IconEyeFilled className='size-4' />
                                         {settings.viewers}
                                     </p>
-                                    <p className='flex items-center gap-1 text-zinc-300'>
+                                    <p className='flex relative items-center gap-1 text-zinc-300'>
                                         <IconClockFilled className='size-4' />
                                         {currentTimeString}
                                     </p>
@@ -429,7 +430,8 @@ export default function PlayerFooter({
                         )}
                     </AnimatePresence>
                 </motion.section>
-            )}
-        </AnimatePresence>
+            )
+            }
+        </AnimatePresence >
     );
 }
